@@ -1,0 +1,28 @@
+{
+    "configurations": [
+        {
+            "name": "Win32",
+            "includePath": [
+                "${workspaceFolder}\\**",
+                "C:\\Users\\jskub\\Documents\\Arduino\\libraries\\**",
+                "C:\\Program Files (x86)\\Arduino\\libraries\\**",
+                "C:\\Users\\jskub\\AppData\\Local\\Arduino15\\packages\\Seeeduino\\tools\\**",
+                "C:\\Users\\jskub\\AppData\\Local\\Arduino15\\packages\\Seeeduino\\hardware\\samd\\1.8.1\\**"
+            ],
+            "forcedInclude": [
+                "C:\\Users\\jskub\\AppData\\Local\\Arduino15\\packages\\Seeeduino\\hardware\\samd\\1.8.1\\cores\\arduino\\Arduino.h",
+                "C:\\Users\\jskub\\AppData\\Local\\Arduino15\\packages\\Seeeduino\\hardware\\samd\\1.8.1\\variants\\XIAO_m0\\variant.h"
+            ],
+            "defines": [
+                "ARDUINO=100",
+                "SEEED_XIAO_M0",
+                "USBCON"
+            ],
+            "intelliSenseMode": "windows-msvc-x64",
+            "compilerPath": "C:/Program Files (x86)/Microsoft Visual Studio/2019/Community/VC/Tools/MSVC/14.24.28314/bin/Hostx64/x64/cl.exe",
+            "cStandard": "c17",
+            "cppStandard": "c++17"
+        }
+    ],
+    "version": 4
+}

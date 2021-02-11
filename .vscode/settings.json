@@ -1,0 +1,14 @@
+{
+	"workbench.colorCustomizations": {
+		"activityBar.background": "#2D2F22",
+		"titleBar.activeBackground": "#3F4230",
+		"titleBar.activeForeground": "#FBFBF9"
+	},
+	"C_Cpp.intelliSenseEngine": "Tag Parser",
+	"files.associations": {
+		"*.config": "xml",
+		"*.linq": "csharp",
+		"ios": "cpp",
+		"xiosbase": "cpp"
+	}
+}
