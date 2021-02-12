@@ -27,8 +27,14 @@ The only way to swap SOCD methods right now is to change the method call in `voi
 
 ![XIAO SOCD Prototype Front](/assets/xiao_socd_proto1_front.jpg)
 ![XIAO SOCD Prototype Back](/assets/xiao_socd_proto1_back.jpg)
-
-> Note: D0 is NOT connected to the 8-pin 2.54mm female header (via A4 on the proto board). I was going to leave that pin unused and shift the XIAO down, but too much of the other soldering was already done. I just clipped the base of the female header where D0 plugs in to prevent the ground connection. I'll eventually add a circuit diagram to make this all a bit clearer.
+![XIAO SOCD Schematic](/assets/XIAO%20SOCD%20Cleaner_schem.png)
+> The input/output wire coloring is:
+>
+> * Red - Up
+> * Orange - Down
+> * Yellow - Right
+> * Green - Left
+> * Black - Ground
 
 Parts used for my prototype:
 
@@ -45,10 +51,16 @@ The current **"last win" SOCD** method takes about **8μs** to for a full loop. 
 
 ## Further Optimizations
 
-A bulk of the gains to be had are already done, mostly around pin and register access. There are still a few more "micro" optimizations to be had with the sketch and prototype:
+A bulk of the gains to be had are already done, mostly around pin and register access. There are still a few more minor optimizations to be had with the sketch and prototype:
 
 * Use a faster photo/optocoupler, one that switches in the range of nanoseconds instead of microseconds
 * Evaluate SOCD logic for optimizations (flip boolean logic, bitwise operations, etc.)
+
+## TODOs
+
+* Document pin mappings in README
+* Build circuit diagram(s)
+* Add more accurate timing method in DEBUG mode
 
 ## Resources
 
