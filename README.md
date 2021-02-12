@@ -34,14 +34,14 @@ Parts used for my prototype:
 
 * 1x 4x6cm protoboard
 * 1x Seeeduino XIAO w/headers
-* 1x PC847 4-channel photocoupler (completely isolates the input and output circuits at the cost of about 4μs)
+* 1x LTV847/PC847 4-channel photocoupler (completely isolates the input and output circuits at the cost of about 4μs)
 * 4x 100Ω resistors (limits the forward voltage to the expected 1.2v for PC847 operation)
 * 2x 5-pin JST-XH male connectors (common connector style for arcade joysticks, 1 pin for each direction and 1 ground)
 * 1x 2-pin JST-XH male connector (to power the XIAO)
 * 2x 8-pin 2.54mm female headers (makes XIAO pluggable)
 * 1x 16-pin DIP socket (makes the photocoupler pluggable)
 
-The current **"last win" SOCD** method takes about **8μs** to for a full loop. With the **4μs** the PC847 takes to trigger the outputs, that's about **12μs** max, or **.012ms**, of additional latency per input. I would consider that imperceptible to a human.
+The current **"last win" SOCD** method takes about **8μs** to for a full loop. With the **4μs** the LTV847 takes to trigger the outputs, that's about **12μs** max, or **.012ms**, of additional latency per input. I would consider that imperceptible to a human.
 
 ## Further Optimizations
 
@@ -57,4 +57,5 @@ A bulk of the gains to be had are already done, mostly around pin and register a
 * [Seeeduino XIAO by Nanase](https://wiki.seeedstudio.com/Seeeduino-XIAO-by-Nanase/)
 * [Seeeduino XIAO Datasheet](https://files.seeedstudio.com/wiki/Seeeduino-XIAO/res/Seeeduino-XIAO-v1.0-SCH-191112.pdf)
 * [Sasapea's Lab (IOBUS.h library)](https://lab.sasapea.mydns.jp/2020/03/16/seeeduino-xiao/)
-* [PC827/PC847 Datasheet](https://datasheet.octopart.com/PC847-Sharp-Microelectronics-datasheet-101325.pdf)
+* [LTV847 Datasheet](https://www.mouser.com/datasheet/2/239/LTV-8X7_series_201610_-1544776.pdf)
+* [PC847 Datasheet](https://datasheet.octopart.com/PC847-Sharp-Microelectronics-datasheet-101325.pdf)
