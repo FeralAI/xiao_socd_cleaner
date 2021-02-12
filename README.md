@@ -12,7 +12,7 @@ The goal with this sketch is to be as fast as possible without resorting to writ
 * Excessive caching - RAM is an afterthought when CPU cycles are on the line. Anything that only needs to be calculated once (pin positions, pin values, binary offset values, etc.) is stored in variables prior to executing the main loop.
 * `Release` build optimizations - Removing the DEBUG define will exclude all benchmark and logging code, allowing for optimal performance.
 
-# SOCD Cleaning
+## SOCD Cleaning
 
 There are three SOCD cleaning methods available in the sketch:
 
