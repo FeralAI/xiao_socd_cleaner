@@ -5,12 +5,12 @@
 #include "IOBUS.h"
 
 // Uncomment this define to show loop time and input/output states via serial monitoring
-// #define DEBUG
+#define DEBUG
 
 // Most controllers will use logic level LOW to trigger an input, however if you've separated your circuits with
 // an optocoupler you will likely want to invert the output logic and trigger outputs with a HIGH value instead.
 // Uncomment this define to invert the output logic.
-#define INVERT_OUTPUT_LOGIC
+// #define INVERT_OUTPUT_LOGIC
 
 #define digitalPinToIOPin(P) ((g_APinDescription[P].ulPort << 5) + g_APinDescription[P].ulPin)
 #define getIOPinValue(state, pinPos) (state >> pinPos) & 1
