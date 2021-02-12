@@ -4,15 +4,15 @@
 
 DIY SOCD cleaner module using a Seeeduino XIAO Arduino board.
 
-## Introduction
+## Description
 
-The goal with this sketch is to be as fast as possible without resorting to writing assembly. The steps taken for speed are:
+The goal with this sketch is to create a standalone SOCD cleaner that runs as fast as possible without writing assembly. The steps taken for speed are:
 
 * Use of Cortex®-M0+ Single Cycle IOBUS for all I/O - This allows for querying pins via direct CPU to port/register access, which is much faster than using the Arduino `digitalRead` and `digitalWrite` functions, and even faster than typical direct port manipulation! I discovered this through the [Seeeduino XIAO by Nanase](https://wiki.seeedstudio.com/Seeeduino-XIAO-by-Nanase/#use-single-cycle-iobus) page, which linked to [Sasapea's Lab](https://lab.sasapea.mydns.jp/2020/03/16/seeeduino-xiao/) for the `IOBUS.h` library.
-* Excessive caching - RAM is an afterthought when CPU cycles are on the line. Anything that only needs to be calculated once (pin positions, pin values, binary offset values, etc.) is stored in variables prior to executing the main loop.
+* Caching - RAM is an afterthought when CPU cycles are on the line. Anything that can be pre-calculated (pin positions, pin values, binary offsets for compare, etc.) is stored in variables prior to executing the main loop.
 * `Release` build optimizations - Removing the DEBUG define will exclude all benchmark and logging code, allowing for optimal performance.
 
-## SOCD Cleaning
+### SOCD Cleaning
 
 There are three SOCD cleaning methods available in the sketch:
 
@@ -25,12 +25,36 @@ The only way to swap SOCD methods right now is to change the method call in `voi
 * The loop execution time using the `Neutral` or `Up Priority` method is **6-7μs**.
 * The loop execution time using the `Last Win` method is **7-8μs**.
 
-## Prototype
+### Pin Mapping
 
-The prototype circuit here should allow for use with any controller, not only those that are 3.3v and use a common ground. Using a photocoupler, we can completely isolate the input and output circuits at the cost of a few microseconds. The input/output wire coloring on the schematic is: Red = Up, Orange = Down, Yellow = Right, Green = Left, Black = Ground
+The default pin mapping for this sketch is:
+
+| Digital Pin # | PORT Pin | INPUT/OUTPUT | Direction |
+| ------------- | -------- | ------------ | --------- |
+| D1            | PA4      | INPUT        | LEFT      |
+| D2            | PA10     | INPUT        | RIGHT     |
+| D3            | PA11     | INPUT        | DOWN      |
+| D4            | PA8      | INPUT        | UP        |
+| D5            | PA9      | OUTPUT       | UP        |
+| D8            | PA7      | OUTPUT       | LEFT      |
+| D9            | PA5      | OUTPUT       | RIGHT     |
+| D10           | PA6      | OUTPUT       | DOWN      |
+
+## Building the XIAO SOCD Cleaner
+
+### Schematic
 
 ![XIAO SOCD Schematic](/assets/XIAO%20SOCD%20Cleaner_schem.png)
-Full circuit schematic
+
+The XIAO runs on 3.3v, and can be directly hooked up to boards that support that voltage and a common ground. The provided schematic uses a photocoupler to isolate the input and output circuits for better compatibility with pad hacks and retail encoders.
+
+### Wiring
+
+The input/output wire coloring on the schematic follows the typical Sanwa JLF wiring scheme with the 5-pin connector facing the buttons, as seen in the bottom-right corner of this image:
+
+![Sanwa JLF wiring diagram](/assets/sanwa_wiring.jpg)
+
+### Prototype
 
 ![XIAO SOCD Prototype Front](/assets/xiao_socd_proto1_front.jpg)
 Prototype layout almost matches schematic 1:1
@@ -49,19 +73,21 @@ Parts used for the prototype:
 * 2x 8-pin 2.54mm female headers (makes XIAO pluggable)
 * 1x 16-pin DIP socket (makes the photocoupler pluggable)
 
+### Notes
+
+This sketch uses logic level LOW to detect an input is pressed, which is quite common for controllers and encoders. Since this prototype uses the LTV847 photocoupler, the output logic needs to be inverted to trigger a press on logic level HIGH. The `INVERT_OUTPUT_LOGIC` define is used in the sketch to, well, invert the output logic to work with the photocoupler.
+
+### Performance
+
 The current **"last win" SOCD** method takes about **8μs** to for a full loop. With the **4μs** the LTV847 takes to trigger the outputs, that's about **12μs** max, or **.012ms**, of additional latency per input. I would consider that imperceptible to a human.
-
-## Further Optimizations
-
-A bulk of the gains to be had are already done, mostly around pin and register access. There are still a few more minor optimizations to be had with the sketch and prototype:
-
-* Use a faster photo/optocoupler, one that switches in the range of nanoseconds instead of microseconds
-* Evaluate SOCD logic for optimizations (flip boolean logic, bitwise operations, etc.)
 
 ## TODOs
 
-* Document pin mappings in README
+A bulk of the optimizations to be had are already done, mostly around pin and register access. There are still a few more minor optimizations to be had with the sketch and prototype:
+
 * Add more accurate timing method in DEBUG mode
+* Evaluate SOCD logic for optimizations (flip boolean logic, bitwise operations, etc.)
+* Use a faster photo/optocoupler, one that switches in the range of nanoseconds instead of microseconds
 
 ## Resources
 
