@@ -87,8 +87,7 @@
   #define IOBUS_PIN_MOSI   IOBUS_PIN_D10
 #endif
 
-typedef enum
-{
+typedef enum {
   IOBUS_PMUX_A = PORT_PMUX_PMUXE_A_Val,
   IOBUS_PMUX_B = PORT_PMUX_PMUXE_B_Val,
   IOBUS_PMUX_C = PORT_PMUX_PMUXE_C_Val,
@@ -116,8 +115,7 @@ class IOBUS {
       PortGroup *PG = &IOBUS_PGROUP(pin);
       uint32_t cfg = IOBUS_PINPOS(pin);
       pin = IOBUS_PINVAL(pin);
-      switch(mode)
-      {
+      switch(mode) {
         case INPUT:
           PG->PINCFG[cfg].reg = (uint8_t)(PORT_PINCFG_INEN);
           PG->DIRCLR.reg = pin;
@@ -170,10 +168,9 @@ class IOBUS {
     static void multiplexing(uint32_t pin, IOBUS_PMUX mux) {
       PortGroup *PG = &IOBUS_PGROUP(pin);
       uint32_t cfg = IOBUS_PINPOS(pin);
-      if (mux == IOBUS_PMUX_DISABLE)
+      if (mux == IOBUS_PMUX_DISABLE) {
         PG->PINCFG[cfg].bit.PMUXEN = 0;
-      else
-      {
+      } else {
         PG->PMUX[cfg >> 1].reg = (PG->PMUX[cfg >> 1].reg & (pin & 1 ? 0x0F : 0xF0)) | (pin & 1 ? mux << 4 : mux);
         PG->PINCFG[cfg].bit.PMUXEN = 1;
       }

@@ -1,38 +1,45 @@
 /**
  * Seeeduino XIAO SOCD Cleaner
  */
+
 #include "IOBUS.h"
 
-// Uncomment to log via Serial
+// Uncomment this define to show loop time and input/output states via serial monitoring
 // #define DEBUG
 
+// Most controllers will use logic level LOW to trigger an input, however if you've separated your circuits with
+// an optocoupler you will likely want to invert the output logic and trigger outputs with a HIGH value instead.
+// Uncomment this define to invert the output logic.
+#define INVERT_OUTPUT_LOGIC
+
 #define digitalPinToIOPin(P) ((g_APinDescription[P].ulPort << 5) + g_APinDescription[P].ulPin)
+#define getIOPinValue(state, pinPos) (state >> pinPos) & 1
 
-#define INPUT_PIN_UP digitalPinToIOPin(4)
-#define INPUT_PIN_DOWN digitalPinToIOPin(3)
-#define INPUT_PIN_LEFT digitalPinToIOPin(1)
-#define INPUT_PIN_RIGHT digitalPinToIOPin(2)
-#define OUTPUT_PIN_UP digitalPinToIOPin(5)
-#define OUTPUT_PIN_DOWN digitalPinToIOPin(10)
-#define OUTPUT_PIN_LEFT digitalPinToIOPin(8)
-#define OUTPUT_PIN_RIGHT digitalPinToIOPin(9)
+// All pins defined on PORTA so they can be read and written in one operation
+#define INPUT_PIN_UP     digitalPinToIOPin(4)  // PA8
+#define INPUT_PIN_DOWN   digitalPinToIOPin(3)  // PA11
+#define INPUT_PIN_LEFT   digitalPinToIOPin(1)  // PA4
+#define INPUT_PIN_RIGHT  digitalPinToIOPin(2)  // PA10
+#define OUTPUT_PIN_UP    digitalPinToIOPin(5)  // PA9
+#define OUTPUT_PIN_DOWN  digitalPinToIOPin(10) // PA6
+#define OUTPUT_PIN_LEFT  digitalPinToIOPin(8)  // PA7
+#define OUTPUT_PIN_RIGHT digitalPinToIOPin(9)  // PA5
 
-#define READ_UP IOBUS::digitalRead(INPUT_PIN_UP)
-#define READ_DOWN IOBUS::digitalRead(INPUT_PIN_DOWN)
-#define READ_LEFT IOBUS::digitalRead(INPUT_PIN_LEFT)
-#define READ_RIGHT IOBUS::digitalRead(INPUT_PIN_RIGHT)
+// Cache IOBUS pin positions so they aren't computed each loop
+uint8_t inUpPinPosition     = IOBUS_PINPOS(INPUT_PIN_UP);
+uint8_t inDownPinPosition   = IOBUS_PINPOS(INPUT_PIN_DOWN);
+uint8_t inLeftPinPosition   = IOBUS_PINPOS(INPUT_PIN_LEFT);
+uint8_t inRightPinPosition  = IOBUS_PINPOS(INPUT_PIN_RIGHT);
+uint8_t outUpPinPosition    = IOBUS_PINPOS(OUTPUT_PIN_UP);
+uint8_t outDownPinPosition  = IOBUS_PINPOS(OUTPUT_PIN_DOWN);
+uint8_t outLeftPinPosition  = IOBUS_PINPOS(OUTPUT_PIN_LEFT);
+uint8_t outRightPinPosition = IOBUS_PINPOS(OUTPUT_PIN_RIGHT);
 
-#define WRITE_UP_LOW IOBUS::digitalWrite(OUTPUT_PIN_UP, LOW);
-#define WRITE_DOWN_LOW IOBUS::digitalWrite(OUTPUT_PIN_DOWN, LOW);
-#define WRITE_LEFT_LOW IOBUS::digitalWrite(OUTPUT_PIN_LEFT, LOW);
-#define WRITE_RIGHT_LOW IOBUS::digitalWrite(OUTPUT_PIN_RIGHT, LOW);
-
-#define WRITE_UP_HIGH IOBUS::digitalWrite(OUTPUT_PIN_UP, HIGH);
-#define WRITE_DOWN_HIGH IOBUS::digitalWrite(OUTPUT_PIN_DOWN, HIGH);
-#define WRITE_LEFT_HIGH IOBUS::digitalWrite(OUTPUT_PIN_LEFT, HIGH);
-#define WRITE_RIGHT_HIGH IOBUS::digitalWrite(OUTPUT_PIN_RIGHT, HIGH);
-
-#define PIN_COUNT 4
+// Cache pin values for getting inputs and setting outputs
+uint32_t outUpValue    = (1 << outUpPinPosition);
+uint32_t outDownValue  = (1 << outDownPinPosition);
+uint32_t outLeftValue  = (1 << outLeftPinPosition);
+uint32_t outRightValue = (1 << outRightPinPosition);
 
 enum class Direction {
   neutral = -1,
@@ -42,26 +49,29 @@ enum class Direction {
   right = 3
 };
 
-uint32_t inUp; uint32_t inDown; uint32_t inLeft; uint32_t inRight;
-uint32_t outUp; uint32_t outDown; uint32_t outLeft; uint32_t outRight;
-Direction lastDirectionUD = Direction::neutral;
-Direction lastDirectionLR = Direction::neutral;
-
+// Declare loop variables
 #ifdef DEBUG
 uint32_t currentTime;
 uint32_t loopTime;
 #endif
+uint32_t inputState = 0;
+uint32_t outClrState = 0;
+uint32_t outSetState = 0;
+uint8_t inUp; uint8_t inDown; uint8_t inLeft; uint8_t inRight;
+uint8_t outUp; uint8_t outDown; uint8_t outLeft; uint8_t outRight;
+Direction lastDirectionUD = Direction::neutral;
+Direction lastDirectionLR = Direction::neutral;
 
 void setup() {
 #ifdef DEBUG
   Serial.begin(115200);
 #endif
 
+  // Set up the pins
   IOBUS::pinMode(INPUT_PIN_UP, INPUT_PULLUP);
   IOBUS::pinMode(INPUT_PIN_DOWN, INPUT_PULLUP);
   IOBUS::pinMode(INPUT_PIN_LEFT, INPUT_PULLUP);
   IOBUS::pinMode(INPUT_PIN_RIGHT, INPUT_PULLUP);
-
   IOBUS::pinMode(OUTPUT_PIN_UP, OUTPUT, true);
   IOBUS::pinMode(OUTPUT_PIN_DOWN, OUTPUT, true);
   IOBUS::pinMode(OUTPUT_PIN_LEFT, OUTPUT, true);
@@ -78,53 +88,97 @@ void setup() {
 
 void loop() {
 #ifdef DEBUG
+  // Current loop time is around 7-8μs
   currentTime = micros();
 #endif
-
+ 
   // Read current inputs
-  inUp = READ_UP;
-  inDown = READ_DOWN;
-  inLeft = READ_LEFT;
-  inRight = READ_RIGHT;
+  inputState = PORT_IOBUS->Group[0].IN.reg;
+  inUp    = getIOPinValue(inputState, inUpPinPosition);
+  inDown  = getIOPinValue(inputState, inDownPinPosition);
+  inLeft  = getIOPinValue(inputState, inLeftPinPosition);
+  inRight = getIOPinValue(inputState, inRightPinPosition);
 
-  // Run algorithm
-  runLastWin();
+  // Run SOCD algorithm
+  runSecondInputPriority();
+  // runNeutral();
+  // runUpPriority();
 
-  // Send outputs
+  // Build output states
+  outClrState = 0;
+  outSetState = 0;
+
+#ifdef INVERT_OUTPUT_LOGIC
   if (outUp)
-    WRITE_UP_LOW
+    outClrState |= outUpValue;
   else
-    WRITE_UP_HIGH;
+    outSetState |= outUpValue;
 
   if (outDown)
-    WRITE_DOWN_LOW
+    outClrState |= outDownValue;
   else
-    WRITE_DOWN_HIGH;
+    outSetState |= outDownValue;
 
   if (outLeft)
-    WRITE_LEFT_LOW
+    outClrState |= outLeftValue;
   else
-    WRITE_LEFT_HIGH;
+    outSetState |= outLeftValue;
 
   if (outRight)
-    WRITE_RIGHT_LOW
+    outClrState |= outRightValue;
   else
-    WRITE_RIGHT_HIGH;
+    outSetState |= outRightValue;
+#else
+  if (outUp)
+    outSetState |= outUpValue;
+  else
+    outClrState |= outUpValue;
+
+  if (outDown)
+    outSetState |= outDownValue;
+  else
+    outClrState |= outDownValue;
+
+  if (outLeft)
+    outSetState |= outLeftValue;
+  else
+    outClrState |= outLeftValue;
+
+  if (outRight)
+    outSetState |= outRightValue;
+  else
+    outClrState |= outRightValue;
+#endif
+  
+  // Set output state
+  PORT_IOBUS->Group[0].OUTCLR.reg = outClrState;
+  PORT_IOBUS->Group[0].OUTSET.reg = outSetState;
 
 #ifdef DEBUG
   // Log timing
   loopTime = micros() - currentTime;
-  Serial.print("Input state: ");
-  Serial.print(inUp); Serial.print(inDown); Serial.print(inLeft); Serial.println(inRight);
-  Serial.print("Output state: ");
-  Serial.print(outUp); Serial.print(outDown); Serial.print(outLeft); Serial.println(outRight);
   Serial.print("Loop time: ");
   Serial.println(loopTime);
+  Serial.print("Parsed inputs: ");
+  Serial.print(inUp); Serial.print(inDown); Serial.print(inLeft); Serial.println(inRight);
+  Serial.print("Parsed outputs: ");
+  Serial.print(outUp); Serial.print(outDown); Serial.print(outLeft); Serial.println(outRight);
+  Serial.print("inputState:  ");
+  Serial.println(inputState, BIN);
+  Serial.print("outClrState: ");
+  Serial.println(outClrState, BIN);
+  Serial.print("outSetState: ");
+  Serial.println(outSetState, BIN);
+  Serial.print("PORTA OUTCLR: ");
+  Serial.println(PORT_IOBUS->Group[0].OUTCLR.reg, BIN);
+  Serial.print("PORTA OUTSET: ");
+  Serial.println(PORT_IOBUS->Group[0].OUTSET.reg, BIN);
 #endif
 }
 
-uint8_t runNeutral() {
-  if (inUp == 0 && inDown == 0) {
+// This method will set each axis to neutral when SOCD are pressed
+void runNeutral() {
+  if (!(inUp | inDown)) {
     outUp = 1;
     outDown = 1;
   } else {
@@ -132,7 +186,7 @@ uint8_t runNeutral() {
     outDown = inDown;
   }
 
-  if (inLeft == 0 && inRight == 0) {
+  if (!(inLeft | inRight)) {
     outLeft = 1;
     outRight = 1;
   } else {
@@ -141,8 +195,28 @@ uint8_t runNeutral() {
   }
 }
 
-uint8_t runLastWin() {
-  if (inUp == 0 && inDown == 0) {
+// This method will set the horizontal axis to neutral and priortize Up for the vertical when SOCD are pressed
+void runUpPriority() {
+  if (!(inUp | inDown)) {
+    outUp = 0;
+    outDown = 1;
+  } else {
+    outUp = inUp;
+    outDown = inDown;
+  }
+
+  if (!(inLeft | inRight)) {
+    outLeft = 1;
+    outRight = 1;
+  } else {
+    outLeft = inLeft;
+    outRight = inRight;
+  }
+}
+
+// This method tracks the last input for each axis to allow the latest input for that axis to pass through
+void runSecondInputPriority() {
+  if (!(inUp | inDown)) {
     switch (lastDirectionUD) {
       case Direction::up:
         outUp = 1;
@@ -160,15 +234,15 @@ uint8_t runLastWin() {
   } else {
     outUp = inUp;
     outDown = inDown;
-    if (outUp == 0)
+    if (!outUp)
       lastDirectionUD = Direction::up;
-    else if (outDown == 0)
+    else if (!outDown)
       lastDirectionUD = Direction::down;
     else
       lastDirectionUD = Direction::neutral;
   }
 
-  if (inLeft == 0 && inRight == 0) {
+  if (!(inLeft | inRight)) {
     switch (lastDirectionLR) {
       case Direction::left:
         outLeft = 1;
@@ -186,9 +260,9 @@ uint8_t runLastWin() {
   } else {
     outLeft = inLeft;
     outRight = inRight;
-    if (outLeft == 0)
+    if (!outLeft)
       lastDirectionLR = Direction::left;
-    else if (outRight == 0)
+    else if (!outRight)
       lastDirectionLR = Direction::right;
     else
       lastDirectionLR = Direction::neutral;
