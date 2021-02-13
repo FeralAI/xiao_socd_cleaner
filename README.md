@@ -22,8 +22,23 @@ There are three SOCD cleaning methods available in the sketch:
 
 The only way to swap SOCD methods right now is to change the method call in `void loop()` and reupload the sketch. Adding logic around the PORTB pins would allow selecting between 4 different SOCD methods, and would be great for wiring up to DIP switches.
 
-* The loop execution time using the `Neutral` or `Up Priority` method is **6-7μs**.
-* The loop execution time using the `Last Win` method is **7-8μs**.
+The current loop execution times are:
+
+* **Neutral - 4.56μs**
+* **Up Priority - 4.52μs**
+* **Second Input Priority - 4.98μs**
+
+## Building the XIAO SOCD Cleaner
+
+### Schematic
+
+The XIAO runs on 3.3v, and can be directly hooked up to boards that support that voltage and a common ground. The provided schematic uses a photocoupler to isolate the input and output circuits for better compatibility with pad hacks and retail encoders.
+
+![XIAO SOCD Schematic](/assets/XIAO%20SOCD%20Cleaner_schem.png)
+
+The input/output wire coloring on the schematic follows the typical Sanwa JLF wiring scheme with the 5-pin connector facing the buttons, as seen in the bottom-right corner of this image:
+
+![Sanwa JLF wiring diagram](/assets/sanwa_wiring.jpg)
 
 ### Pin Mapping
 
@@ -39,20 +54,6 @@ The default pin mapping for this sketch is:
 | D8            | PA7      | OUTPUT       | LEFT      |
 | D9            | PA5      | OUTPUT       | RIGHT     |
 | D10           | PA6      | OUTPUT       | DOWN      |
-
-## Building the XIAO SOCD Cleaner
-
-### Schematic
-
-![XIAO SOCD Schematic](/assets/XIAO%20SOCD%20Cleaner_schem.png)
-
-The XIAO runs on 3.3v, and can be directly hooked up to boards that support that voltage and a common ground. The provided schematic uses a photocoupler to isolate the input and output circuits for better compatibility with pad hacks and retail encoders.
-
-### Wiring
-
-The input/output wire coloring on the schematic follows the typical Sanwa JLF wiring scheme with the 5-pin connector facing the buttons, as seen in the bottom-right corner of this image:
-
-![Sanwa JLF wiring diagram](/assets/sanwa_wiring.jpg)
 
 ### Prototype
 
@@ -79,15 +80,16 @@ This sketch uses logic level LOW to detect an input is pressed, which is quite c
 
 ### Performance
 
-The current **"last win" SOCD** method takes about **8μs** to for a full loop. With the **4μs** the LTV847 takes to trigger the outputs, that's about **12μs** max, or **.012ms**, of additional latency per input. I would consider that imperceptible to a human.
+The current **"last win" SOCD** method takes about **5μs** to for a full loop. With the **4μs** the LTV847 takes to trigger the outputs, that's about **9μs** max, or **.009ms**, of additional latency per input. I would consider that imperceptible to a human.
 
 ## TODOs
 
 A bulk of the optimizations to be had are already done, mostly around pin and register access. There are still a few more minor optimizations to be had with the sketch and prototype:
 
-* Add more accurate timing method in DEBUG mode
 * Evaluate SOCD logic for optimizations (flip boolean logic, bitwise operations, etc.)
+  * 1st pass done, could use more work though
 * Use a faster photo/optocoupler, one that switches in the range of nanoseconds instead of microseconds
+  * Got some 6N137 optoisolators on the way for a prototype v2.
 
 ## Resources
 
