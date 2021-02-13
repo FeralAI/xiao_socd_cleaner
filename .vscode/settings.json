@@ -4,7 +4,6 @@
 		"titleBar.activeBackground": "#3F4230",
 		"titleBar.activeForeground": "#FBFBF9"
 	},
-	"C_Cpp.intelliSenseEngine": "Tag Parser",
 	"files.associations": {
 		"*.config": "xml",
 		"*.linq": "csharp",
