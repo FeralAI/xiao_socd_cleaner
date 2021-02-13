@@ -77,8 +77,6 @@ enum class Direction {
 #ifdef DEBUG
 // Timer variables
 volatile uint16_t overflowCount = 0;
-uint16_t totalCycleCount = 0;
-uint16_t totalOverflowCount = 0;
 #endif
 
 // Loop variables
@@ -103,7 +101,7 @@ void setup() {
 
 void loop() {
 #ifdef DEBUG
-  // Current loop time is around 5μs max
+  // Current loop time is around 4μs max
   overflowCount = 0;
   TC5->COUNT16.COUNT.reg = 0;
 #endif
@@ -218,24 +216,19 @@ void loop() {
 
 #ifdef DEBUG
   // Log timing
-  totalCycleCount = TC5->COUNT16.COUNT.reg + (overflowCount * 65535) - 1;
+  uint16_t totalCycleCount = TC5->COUNT16.COUNT.reg + (overflowCount * 65535) - 1;
   Serial.print("Loop cycle count: ");
   Serial.println(totalCycleCount);
   Serial.print("Loop time (us): ");
   Serial.println(1 / 48e6 * totalCycleCount * 1e6);
-  // Serial.print("Parsed outputs: ");
-  // Serial.print(outUp); Serial.print(outDown); Serial.print(outLeft); Serial.println(outRight);
   Serial.print("inputState: ");
   Serial.println(PORT_IOBUS->Group[0].IN.reg, BIN);
   Serial.print("outClrState: ");
   Serial.println(outClrState, BIN);
   Serial.print("outSetState: ");
   Serial.println(outSetState, BIN);
-  Serial.print("PORTA OUTCLR: ");
+  Serial.print("PORTA: ");
   Serial.println(PORT_IOBUS->Group[0].OUTCLR.reg, BIN);
-  Serial.print("PORTA OUTSET: ");
-  Serial.println(PORT_IOBUS->Group[0].OUTSET.reg, BIN);
-  delay(100);
 #endif
 }
 
