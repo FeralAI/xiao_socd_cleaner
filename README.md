@@ -1,7 +1,5 @@
 # Seeeduino XIAO SOCD Cleaner
 
-![Seeedino XIAO pinout](/assets/Seeeduino-XIAO-pinout.jpg)
-
 DIY SOCD cleaner module using a Seeeduino XIAO Arduino board.
 
 ## Description
@@ -24,23 +22,13 @@ The only way to swap SOCD methods right now is to change the method call in `voi
 
 The current loop execution times are:
 
-* **Neutral - 4.56μs**
-* **Up Priority - 4.52μs**
-* **Second Input Priority - 4.98μs**
-
-## Building the XIAO SOCD Cleaner
-
-### Schematic
-
-The XIAO runs on 3.3v, and can be directly hooked up to boards that support that voltage and a common ground. The provided schematic uses a photocoupler to isolate the input and output circuits for better compatibility with pad hacks and retail encoders.
-
-![XIAO SOCD Schematic](/assets/XIAO%20SOCD%20Cleaner_schem.png)
-
-The input/output wire coloring on the schematic follows the typical Sanwa JLF wiring scheme with the 5-pin connector facing the buttons, as seen in the bottom-right corner of this image:
-
-![Sanwa JLF wiring diagram](/assets/sanwa_wiring.jpg)
+* **Neutral - 3.77μs**
+* **Up Priority - 3.85μs**
+* **Second Input Priority - 3.79μs**
 
 ### Pin Mapping
+
+![Seeedino XIAO pinout](/assets/Seeeduino-XIAO-pinout.jpg)
 
 The default pin mapping for this sketch is:
 
@@ -54,6 +42,18 @@ The default pin mapping for this sketch is:
 | D8            | PA7      | OUTPUT       | LEFT      |
 | D9            | PA5      | OUTPUT       | RIGHT     |
 | D10           | PA6      | OUTPUT       | DOWN      |
+
+## Building the XIAO SOCD Cleaner
+
+### Schematic
+
+The XIAO runs on 3.3v, and can be directly hooked up to boards that support that voltage and a common ground. The provided schematic uses a photocoupler to isolate the input and output circuits for better compatibility with pad hacks and retail encoders.
+
+![XIAO SOCD Schematic](/assets/XIAO%20SOCD%20Cleaner_schem.png)
+
+The input/output wire coloring on the schematic follows the typical Sanwa JLF wiring scheme with the 5-pin connector facing the buttons, as seen in the bottom-right corner of this image:
+
+![Sanwa JLF wiring diagram](/assets/sanwa_wiring.jpg)
 
 ### Prototype
 
@@ -80,7 +80,7 @@ This sketch uses logic level LOW to detect an input is pressed, which is quite c
 
 ### Performance
 
-The current **"last win" SOCD** method takes about **5μs** to for a full loop. With the **4μs** the LTV847 takes to trigger the outputs, that's about **9μs** max, or **.009ms**, of additional latency per input. I would consider that imperceptible to a human.
+All SOCD cleaning methods take **4μs** or less for a full loop. With the **4μs** the LTV847 takes to trigger the outputs, that's about **8μs** max, or **.008ms**, of additional latency per input. I would consider that imperceptible to a human.
 
 ## TODOs
 
