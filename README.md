@@ -4,7 +4,7 @@ DIY SOCD cleaner module using a Seeeduino XIAO Arduino board.
 
 ## Description
 
-The goal with this sketch is to create a standalone SOCD cleaner that runs as fast as possible without writing assembly. The steps taken for speed are:
+The goal with this sketch is to create a standalone SOCD cleaner that runs as fast as possible with the given hardware:
 
 * Use of Cortex®-M0+ Single Cycle IOBUS for all I/O - This allows for querying pins via direct CPU to port/register access, which is much faster than using the Arduino `digitalRead` and `digitalWrite` functions, and even faster than typical direct port manipulation! I discovered this through the [Seeeduino XIAO by Nanase](https://wiki.seeedstudio.com/Seeeduino-XIAO-by-Nanase/#use-single-cycle-iobus) page, which linked to [Sasapea's Lab](https://lab.sasapea.mydns.jp/2020/03/16/seeeduino-xiao/) for the `IOBUS.h` library.
 * Caching - RAM is an afterthought when CPU cycles are on the line. Anything that can be pre-calculated (pin positions, pin values, binary offsets for compare, etc.) is stored in variables prior to executing the main loop.
@@ -22,9 +22,11 @@ The only way to swap SOCD methods right now is to change the method call in `voi
 
 The current loop execution times are:
 
-* **Neutral - 3.77μs**
-* **Up Priority - 3.85μs**
-* **Second Input Priority - 3.79μs**
+ | SOCD Method           | Loop Minimum        | Loop Maximum        |
+ | --------------------- | ------------------- | ------------------- |
+ | Neutral               |  32 cycles / 0.67μs |  80 cycles / 1.67μs |
+ | Up Priority           |  29 cycles / 0.60μs |  73 cycles / 1.52μs |
+ | Second Input Priority |  30 cycles / 0.62μs | 104 cycles / 2.17μs |
 
 ### Pin Mapping
 
@@ -80,16 +82,14 @@ This sketch uses logic level LOW to detect an input is pressed, which is quite c
 
 ### Performance
 
-All SOCD cleaning methods take **4μs** or less for a full loop. With the **4μs** the LTV847 takes to trigger the outputs, that's about **8μs** max, or **.008ms**, of additional latency per input. I would consider that imperceptible to a human.
+All SOCD cleaning methods take **2μs** or less for a full loop. With the **4μs** the LTV847 takes to trigger the outputs, that's about **6μs** max, or **.006ms**, of additional latency per input. I would consider that imperceptible to a human.
 
 ## TODOs
 
 A bulk of the optimizations to be had are already done, mostly around pin and register access. There are still a few more minor optimizations to be had with the sketch and prototype:
 
-* Evaluate SOCD logic for optimizations (flip boolean logic, bitwise operations, etc.)
-  * 1st pass done, could use more work though
+* Evaluate logic for optimizations (inline calcs, flip boolean logic, bitwise operations, etc.)
 * Use a faster photo/optocoupler, one that switches in the range of nanoseconds instead of microseconds
-  * Got some 6N137 optoisolators on the way for a prototype v2.
 
 ## Resources
 
