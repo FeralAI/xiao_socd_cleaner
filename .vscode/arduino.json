@@ -2,5 +2,5 @@
     "sketch": "xiao_socd_cleaner.ino",
     "board": "Seeeduino:samd:seeed_XIAO_m0",
     "configuration": "usbstack=arduino,debug=off",
-    "port": "COM9"
+    "port": "COM7"
 }

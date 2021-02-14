@@ -3,14 +3,11 @@
  * 
  * | SOCD Method           | Loop Minimum        | Loop Maximum        |
  * | --------------------- | ------------------- | ------------------- |
- * | Neutral               |  32 cycles / 0.67μs |  80 cycles / 1.67μs |
- * | Up Priority           |  29 cycles / 0.60μs |  73 cycles / 1.52μs |
- * | Second Input Priority |  30 cycles / 0.62μs | 104 cycles / 2.17μs |
+ * | Neutral               |  27 cycles / 0.56μs |  74 cycles / 1.54μs |
+ * | Up Priority           |  30 cycles / 0.62μs |  78 cycles / 1.63μs |
+ * | Second Input Priority |  35 cycles / 0.73μs | 106 cycles / 2.21μs |
  * 
  */
-
-#include "IOBUS.h"
-#include "IODEF.h"
 
 /**
  *  User Defines
@@ -20,16 +17,22 @@
 // #define DEBUG
 
 // Set your selected SOCD cleaning method here: 0 - Neutral, 1 - Up Priority, 2 - Second Input Priority
-#define SOCD_METHOD 1
+#define SOCD_METHOD 2
+
+// Set the version of the prototype board being used - this controls the pin definitions in PINDEF.h
+#define PROTOTYPE_VERSION 2
 
 // Most controllers will use logic level LOW to trigger an input, however if you've separated your circuits with
 // an optocoupler you will likely want to invert the output logic and trigger outputs with a HIGH value instead.
 // Uncomment this define to invert the output logic.
-// #define INVERT_OUTPUT_LOGIC
+#define INVERT_OUTPUT_LOGIC
 
 /**
  *  End User Defines
  */
+
+#include "IOBUS.h"
+#include "IODEF.h"
 
 #ifdef DEBUG
 // Timer variables
@@ -75,7 +78,7 @@ void loop() {
 #if SOCD_METHOD == 1
       outputState &= ~InputMasks::valueD;
 #elif SOCD_METHOD == 2
-      outputState &= (lastDirectionUD == Direction::up) ? ~InputMasks::valueU : ~InputMasks::valueD;
+      outputState &= ~((lastDirectionUD == Direction::up) ? InputMasks::valueU : InputMasks::valueD);
 #else
       outputState &= ~InputMasks::valueUD;
 #endif
@@ -86,7 +89,7 @@ void loop() {
 
     if ((outputState & InputMasks::valueLR) == InputMasks::valueLR) { // Has horizontal SOCD?
 #if SOCD_METHOD == 2
-      outputState &= (lastDirectionLR == Direction::left) ? ~InputMasks::valueL : ~InputMasks::valueR;
+      outputState &= ~((lastDirectionLR == Direction::left) ? InputMasks::valueL : InputMasks::valueR);
 #else
       outputState &= ~InputMasks::valueLR;
 #endif
@@ -109,12 +112,12 @@ void loop() {
 
 #ifdef DEBUG
   // Log timing
-  // -1 for timer reset and -4 for caching inputState for logging
-  uint16_t totalCycleCount = TC5->COUNT16.COUNT.reg + (overflowCount * 65535) - (1 + 4);
-  Serial.print("Loop cycle count: ");
-  Serial.println(totalCycleCount);
-  Serial.print("Loop time (us): ");
-  Serial.println(1 / 48e6 * totalCycleCount * 1e6);
+  // -2 for timer reset and stop
+  uint16_t totalCycleCount = TC5->COUNT16.COUNT.reg - 2;
+  Serial.print(totalCycleCount);
+  Serial.print(" cycles / ");
+  Serial.print(1 / 48e6 * totalCycleCount * 1e6);
+  Serial.println("μs");
   Serial.print("maskedInput: ");
   Serial.println(maskedInput, BIN);
   Serial.print("outputState: ");
@@ -161,20 +164,20 @@ void configureTimer() {
   while (TC5->COUNT16.STATUS.bit.SYNCBUSY);
 
   // Configure interrupt
-  NVIC_DisableIRQ(TC5_IRQn);
-  NVIC_ClearPendingIRQ(TC5_IRQn);
-  NVIC_SetPriority(TC5_IRQn, 0);
-  NVIC_EnableIRQ(TC5_IRQn);
-  TC5->COUNT16.INTENSET.bit.MC0 = 1;          // Enable the TC5 Match/Compare 0 interrupt
-  while (TC5->COUNT16.STATUS.bit.SYNCBUSY);
+  // NVIC_DisableIRQ(TC5_IRQn);
+  // NVIC_ClearPendingIRQ(TC5_IRQn);
+  // NVIC_SetPriority(TC5_IRQn, 0);
+  // NVIC_EnableIRQ(TC5_IRQn);
+  // TC5->COUNT16.INTENSET.bit.MC0 = 1;          // Enable the TC5 Match/Compare 0 interrupt
+  // while (TC5->COUNT16.STATUS.bit.SYNCBUSY);
 
   // Start counter
   TC5->COUNT16.CTRLA.reg |= TC_CTRLA_ENABLE;  // Enable TC5
   while (TC5->COUNT16.STATUS.bit.SYNCBUSY);
 }
 
-void TC5_Handler(void) {
-  overflowCount++;
-  TC5->COUNT16.INTFLAG.bit.MC0 = 1; // Clear the interrupt flag
-}
+// void TC5_Handler(void) {
+//   overflowCount++;
+//   TC5->COUNT16.INTFLAG.bit.MC0 = 1; // Clear the interrupt flag
+// }
 #endif
