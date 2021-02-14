@@ -22,11 +22,11 @@ The only way to swap SOCD methods right now is to change the method call in `voi
 
 The current loop execution times are:
 
- | SOCD Method           | Loop Minimum        | Loop Maximum        |
- | --------------------- | ------------------- | ------------------- |
- | Neutral               |  32 cycles / 0.67μs |  80 cycles / 1.67μs |
- | Up Priority           |  29 cycles / 0.60μs |  73 cycles / 1.52μs |
- | Second Input Priority |  30 cycles / 0.62μs | 104 cycles / 2.17μs |
+| SOCD Method           | Loop Minimum        | Loop Maximum        |
+| --------------------- | ------------------- | ------------------- |
+| Neutral               |  27 cycles / 0.56μs |  74 cycles / 1.54μs |
+| Up Priority           |  30 cycles / 0.62μs |  78 cycles / 1.63μs |
+| Second Input Priority |  35 cycles / 0.73μs | 106 cycles / 2.21μs |
 
 ### Pin Mapping
 
