@@ -36,20 +36,22 @@ class InputMasks {
     // If the input pins are changed, these values will need to be updated
     
     // Input mask permuatations
-    static const uint16_t maskD    = 0 | (1 << INPUT_PORT_PIN_DOWN);
-    static const uint16_t maskL    = 0 | (1 << INPUT_PORT_PIN_LEFT);
-    static const uint16_t maskR    = 0 | (1 << INPUT_PORT_PIN_RIGHT);
-    static const uint16_t maskU    = 0 | (1 << INPUT_PORT_PIN_UP);
-    static const uint16_t maskUDLR = maskU | maskD | maskL | maskR;
-
-    // Cached output bit flags
-    static const uint16_t valueD    = 0 | (1 << OUTPUT_PORT_PIN_DOWN);
-    static const uint16_t valueL    = 0 | (1 << OUTPUT_PORT_PIN_LEFT);
-    static const uint16_t valueR    = 0 | (1 << OUTPUT_PORT_PIN_RIGHT);
-    static const uint16_t valueU    = 0 | (1 << OUTPUT_PORT_PIN_UP);
-    static const uint16_t valueLR   = valueL | valueR;
-    static const uint16_t valueUD   = valueU | valueD;
-    static const uint16_t valueUDLR = valueU | valueD | valueL | valueR;
+    static const uint16_t PROGMEM maskD    = 0 | (1 << INPUT_PORT_PIN_DOWN);
+    static const uint16_t PROGMEM maskL    = 0 | (1 << INPUT_PORT_PIN_LEFT);
+    static const uint16_t PROGMEM maskR    = 0 | (1 << INPUT_PORT_PIN_RIGHT);
+    static const uint16_t PROGMEM maskU    = 0 | (1 << INPUT_PORT_PIN_UP);
+    static const uint16_t PROGMEM maskUD   = maskU | maskD;
+    static const uint16_t PROGMEM maskLR   = maskL | maskR;
+    static const uint16_t PROGMEM maskUDLR = maskU | maskD | maskL | maskR;
+ PROGMEM
+    // Cached output bit  PROGMEMflags
+    static const uint16_t PROGMEM valueD    = 0 | (1 << OUTPUT_PORT_PIN_DOWN);
+    static const uint16_t PROGMEM valueL    = 0 | (1 << OUTPUT_PORT_PIN_LEFT);
+    static const uint16_t PROGMEM valueR    = 0 | (1 << OUTPUT_PORT_PIN_RIGHT);
+    static const uint16_t PROGMEM valueU    = 0 | (1 << OUTPUT_PORT_PIN_UP);
+    static const uint16_t PROGMEM valueLR   = valueL | valueR;
+    static const uint16_t PROGMEM valueUD   = valueU | valueD;
+    static const uint16_t PROGMEM valueUDLR = valueU | valueD | valueL | valueR;
 };
 
 #endif

@@ -7,7 +7,8 @@ DIY SOCD cleaner module using a Seeeduino XIAO Arduino board.
 The goal with this sketch is to create a standalone SOCD cleaner that runs as fast as possible with the given hardware:
 
 * Use of Cortex®-M0+ Single Cycle IOBUS for all I/O - This allows for querying pins via direct CPU to port/register access, which is much faster than using the Arduino `digitalRead` and `digitalWrite` functions, and even faster than typical direct port manipulation! I discovered this through the [Seeeduino XIAO by Nanase](https://wiki.seeedstudio.com/Seeeduino-XIAO-by-Nanase/#use-single-cycle-iobus) page, which linked to [Sasapea's Lab](https://lab.sasapea.mydns.jp/2020/03/16/seeeduino-xiao/) for the `IOBUS.h` library.
-* Caching - RAM is an afterthought when CPU cycles are on the line. Anything that can be pre-calculated (pin positions, pin values, binary offsets for compare, etc.) is stored in variables prior to executing the main loop.
+* Caching - RAM is an afterthought when CPU cycles are on the line. Anything that can be pre-calculated (pin positions, pin values, binary offsets for compare, etc.) is stored in variables or PROGMEM prior to executing the main loop.
+* Stack vs. Heap variables - Stack variables take fewer processor cycles to access.  Prioritize local variables instead of global variables.
 * `Release` build optimizations - Removing the DEBUG define will exclude all benchmark and logging code, allowing for optimal performance.
 
 ### SOCD Cleaning
@@ -24,9 +25,9 @@ The current loop execution times are:
 
 | SOCD Method           | Loop Minimum        | Loop Maximum        |
 | --------------------- | ------------------- | ------------------- |
-| Neutral               |  27 cycles / 0.56μs |  74 cycles / 1.54μs |
-| Up Priority           |  30 cycles / 0.62μs |  78 cycles / 1.63μs |
-| Second Input Priority |  35 cycles / 0.73μs | 106 cycles / 2.21μs |
+| Neutral               |  12 cycles / 0.25μs |  45 cycles / 0.94μs |
+| Up Priority           |  12 cycles / 0.25μs |  46 cycles / 0.96μs |
+| Second Input Priority |  12 cycles / 0.25μs |  62 cycles / 1.29μs |
 
 ### Pin Mapping
 
@@ -36,14 +37,14 @@ The default pin mapping for this sketch is:
 
 | Digital Pin # | PORT Pin | INPUT/OUTPUT | Direction |
 | ------------- | -------- | ------------ | --------- |
-| D1            | PA4      | INPUT        | LEFT      |
-| D2            | PA10     | INPUT        | RIGHT     |
-| D3            | PA11     | INPUT        | DOWN      |
-| D4            | PA8      | INPUT        | UP        |
-| D5            | PA9      | OUTPUT       | UP        |
-| D8            | PA7      | OUTPUT       | LEFT      |
-| D9            | PA5      | OUTPUT       | RIGHT     |
-| D10           | PA6      | OUTPUT       | DOWN      |
+| D0            | PA2      | INPUT        | LEFT      |
+| D1            | PA4      | INPUT        | RIGHT     |
+| D2            | PA10     | INPUT        | DOWN      |
+| D3            | PA11     | INPUT        | UP        |
+| D4            | PA8      | INPUT        | LEFT      |
+| D8            | PA7      | OUTPUT       | RIGHT     |
+| D9            | PA5      | OUTPUT       | DOWN      |
+| D10           | PA6      | OUTPUT       | UP        |
 
 ## Building the XIAO SOCD Cleaner
 
@@ -59,22 +60,17 @@ The input/output wire coloring on the schematic follows the typical Sanwa JLF wi
 
 ### Prototype
 
-![XIAO SOCD Prototype Front](/assets/xiao_socd_proto1_front.jpg)
-Prototype layout almost matches schematic 1:1
-
-![XIAO SOCD Prototype Back](/assets/xiao_socd_proto1_back.jpg)
-Ignore the solder bridge that is touching the D0 pin (A4 via on the proto board), the female 2.54mm header was clipped on the top of the board to prevent always pulling D0 to ground.
+![XIAO SOCD Prototype Front](/assets/xiao_socd_proto2_front.jpg)
+![XIAO SOCD Prototype Back](/assets/xiao_socd_proto2_back.jpg)
 
 Parts used for the prototype:
 
-* 1x 4x6cm protoboard
+* 1x [Mini Perma Proto Breadboard](https://www.amazon.com/gp/product/B085WPTQ9B)
 * 1x Seeeduino XIAO w/headers
 * 1x LTV847/PC847 4-channel photocoupler (rise/fall time for trigger is ~4μs)
 * 4x 100Ω resistors (limits the forward voltage to the expected 1.2v for PC847 operation)
 * 2x 5-pin JST-XH male connectors (common connector style for arcade joysticks, 1 pin for each direction and 1 ground)
 * 1x 2-pin JST-XH male connector (to power the XIAO)
-* 2x 8-pin 2.54mm female headers (makes XIAO pluggable)
-* 1x 16-pin DIP socket (makes the photocoupler pluggable)
 
 ### Notes
 
@@ -82,7 +78,7 @@ This sketch uses logic level LOW to detect an input is pressed, which is quite c
 
 ### Performance
 
-All SOCD cleaning methods take **2μs** or less for a full loop. With the **4μs** the LTV847 takes to trigger the outputs, that's about **6μs** max, or **.006ms**, of additional latency per input. I would consider that imperceptible to a human.
+All SOCD cleaning methods take about **1μs** for a full loop. With the **4μs** the LTV847 takes to trigger the outputs, that's about **5μs** max, or **.005ms**, of additional latency per input. I would consider that imperceptible to a human.
 
 ## TODOs
 
