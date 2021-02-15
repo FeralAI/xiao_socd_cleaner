@@ -19,15 +19,7 @@ There are three SOCD cleaning methods available in the sketch:
 * `Up Priority` - Like `Neutral`, except Up takes priority on the vertical axis. This is the default SOCD cleaning method of the Hit Box controllers.
 * `Second Input Priority` - Commonly known as the `Last Win` method, this passes through the latest input for a given axis while maintaining the pressed state of the other direction for that axis. For example if you are holding left then press right, you will get a right input. If you then release and re-press left while still holding right, you will then get a left input. Finally, releasing left will give you a right input because right is still pressed. If both inputs are activated for an axis in the same input sampling window, you will receive neutral, though this is highly unlikely due to the extremely small window for sampling inputs. This is the default method for this sketch.
 
-The only way to swap SOCD methods right now is to change the method call in `void loop()` and reupload the sketch. Adding logic around the PORTB pins would allow selecting between 4 different SOCD methods, and would be great for wiring up to DIP switches.
-
-The current loop execution times are:
-
-| SOCD Method           | Loop Minimum        | Loop Maximum        |
-| --------------------- | ------------------- | ------------------- |
-| Neutral               |  12 cycles / 0.25μs |  45 cycles / 0.94μs |
-| Up Priority           |  12 cycles / 0.25μs |  46 cycles / 0.96μs |
-| Second Input Priority |  12 cycles / 0.25μs |  62 cycles / 1.29μs |
+The only way to swap SOCD methods right now is to change the method call in `void loop()` and reupload the sketch. Adding logic around the PORTB pins would allow selecting between 4 different SOCD methods, and would be great for wiring up to DIP switches. The SOCD cleaning takes from 12 cycles / 0.25μs up to 80 cycles / 1.67μs depending on the inputs and SOCD options. Previous version of this sketch used preprocessor defines to conditionally compile code per SOCD method, which is a little faster but less flexible.
 
 ### Pin Mapping
 
@@ -52,7 +44,7 @@ The default pin mapping for this sketch is:
 
 The XIAO runs on 3.3v, and can be directly hooked up to boards that support that voltage and a common ground. The provided schematic uses a photocoupler to isolate the input and output circuits for better compatibility with pad hacks and retail encoders.
 
-![XIAO SOCD Schematic](/assets/XIAO%20SOCD%20Cleaner_schem.png)
+![XIAO SOCD Schematic](/assets/XIAO%20SOCD%20Cleaner_schem_v2.png)
 
 The input/output wire coloring on the schematic follows the typical Sanwa JLF wiring scheme with the 5-pin connector facing the buttons, as seen in the bottom-right corner of this image:
 

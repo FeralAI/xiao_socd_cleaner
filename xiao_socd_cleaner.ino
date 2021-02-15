@@ -1,11 +1,11 @@
 /**
  * Seeeduino XIAO SOCD Cleaner
  * 
- * | SOCD Method           | Loop Minimum        | Loop Maximum        |
- * | --------------------- | ------------------- | ------------------- |
- * | Neutral               |  12 cycles / 0.25μs |  45 cycles / 0.94μs |
- * | Up Priority           |  12 cycles / 0.25μs |  46 cycles / 0.96μs |
- * | Second Input Priority |  12 cycles / 0.25μs |  62 cycles / 1.29μs |
+ * The SOCD algorithms take up to 80 cycles / 1.67μs to run. This can be reduced by removing the if statements and compiling
+ * for a specific SOCD method.
+ * 
+ * DIP 1 sets the base operating mode between Neutral (OFF) and Second Input Priority (ON).
+ * DIP 2 set to ON will make Up take priority.
  * 
  */
 
@@ -14,10 +14,7 @@
  */
 
 // Uncomment this define to show loop time and input/output states via serial monitoring
-// #define DEBUG
-
-// Set your selected SOCD cleaning method here: 0 - Neutral, 1 - Up Priority, 2 - Second Input Priority
-#define SOCD_METHOD 2
+#define DEBUG
 
 // Set the version of the prototype board being used - this controls the pin definitions in PINDEF.h
 #define PROTOTYPE_VERSION 2
@@ -31,22 +28,36 @@
  *  End User Defines
  */
 
-#include "IOBUS.h"
 #include "IODEF.h"
 
 #define COMPARE_VALUE 65535
 
 // Loop variables
-#if SOCD_METHOD == 2
+// Set your selected SOCD cleaning method here: 0 - Neutral, 1 - Up Priority, 2 - Second Input Priority
 Direction lastDirectionUD = Direction::neutral;
 Direction lastDirectionLR = Direction::neutral;
+bool secondInputPriority = false;
+bool upPriority = false;
+
+void configureSOCD() {
+  uint32_t portA = PORT_IOBUS->Group[PORTA].IN.reg;
+  uint32_t portB = PORT_IOBUS->Group[PORTB].IN.reg;
+
+#if PROTOTYPE_VERSION == 1
+  secondInputPriority = (portB & (1 << DIP1_PORT_PIN)) == 0;
+  upPriority = (portB & (1 << DIP2_PORT_PIN)) == 0;
+#else
+  secondInputPriority = (portB & (1 << DIP1_PORT_PIN)) == 0;
+  upPriority = (portA & (1 << DIP2_PORT_PIN)) == 0;
 #endif
+}
 
 void setup() {
 #ifdef DEBUG
   Serial.begin(115200);
 #endif
   configurePins();
+  configureSOCD();
 #ifdef DEBUG
   configureTimer();
   Serial.println("Setup complete, begin SOCD algorithm");
@@ -57,51 +68,44 @@ void loop() {
 #ifdef DEBUG
   TC5->COUNT16.COUNT.reg = 0;
 #endif
-  // Filter to just the inputs we care about from the port
-  uint32_t maskedInput = PORT_IOBUS->Group[0].IN.reg ^ InputMasks::maskUDLR;
+  uint32_t maskedInput = PORT_IOBUS->Group[PORTA].IN.reg ^ InputMasks::maskUDLR;
   uint32_t outputState = 0;
 
   if (maskedInput) {
     switch (maskedInput & InputMasks::maskUD) {
+      case InputMasks::maskUD:
+        if (upPriority)
+          outputState |= InputMasks::valueU;
+        else if (secondInputPriority)
+          outputState |= (lastDirectionUD == Direction::up) ? InputMasks::valueD : InputMasks::valueU;
+        break;
       case InputMasks::maskU:
         outputState |= InputMasks::valueU;
-#if SOCD_METHOD == 2
-        lastDirectionUD = Direction::up;
-#endif
+        if (secondInputPriority)
+          lastDirectionUD = Direction::up;
         break;
       case InputMasks::maskD:
         outputState |= InputMasks::valueD;
-#if SOCD_METHOD == 2
-        lastDirectionUD = Direction::down;
-#endif
-        break;
-      case InputMasks::maskUD:
-#if SOCD_METHOD == 1
-        outputState |= InputMasks::valueU;
-#elif SOCD_METHOD == 2
-        outputState |= (lastDirectionUD == Direction::up) ? InputMasks::valueD : InputMasks::valueU;
-#endif
+        if (secondInputPriority)
+          lastDirectionUD = Direction::down;
         break;
     }
 
     switch (maskedInput & InputMasks::maskLR) {
+      case InputMasks::maskLR:
+        if (secondInputPriority)
+          outputState |= (lastDirectionLR == Direction::left) ? InputMasks::valueR : InputMasks::valueL;
+        break;
       case InputMasks::maskL:
         outputState |= InputMasks::valueL;
-#if SOCD_METHOD == 2
-        lastDirectionLR = Direction::left;
-#endif
+        if (secondInputPriority)
+          lastDirectionLR = Direction::left;
         break;
       case InputMasks::maskR:
         outputState |= InputMasks::valueR;
-#if SOCD_METHOD == 2
-        lastDirectionLR = Direction::right;
-#endif
+        if (secondInputPriority)
+          lastDirectionLR = Direction::right;
         break;
-#if SOCD_METHOD == 2
-      case InputMasks::maskLR:
-        outputState |= (lastDirectionLR == Direction::left) ? InputMasks::valueR : InputMasks::valueL;
-        break;
-#endif
     }
   }
 
@@ -116,32 +120,13 @@ void loop() {
 #ifdef DEBUG
   // Log timing
   // Takes 8 cycles to reset timer
-  uint16_t totalCycleCount = TC5->COUNT16.COUNT.reg - 8;
-  double duration = 1 / 48e6 * totalCycleCount * 1e6;
-  Serial.print(totalCycleCount);
-  Serial.print(" cycles / ");
-  Serial.print(duration);
-  Serial.println("μs");
+  Serial.println(TC5->COUNT16.COUNT.reg - 8);
+  delay(100);
   // Serial.print("maskedInput: ");
   // Serial.println(maskedInput, BIN);
   // Serial.print("outputState: ");
   // Serial.println(outputState, BIN);
 #endif
-}
-
-void configurePins() {
-  IOBUS::pinMode(INPUT_IOPIN_UP, INPUT_PULLUP);
-  IOBUS::pinMode(INPUT_IOPIN_DOWN, INPUT_PULLUP);
-  IOBUS::pinMode(INPUT_IOPIN_LEFT, INPUT_PULLUP);
-  IOBUS::pinMode(INPUT_IOPIN_RIGHT, INPUT_PULLUP);
-  IOBUS::pinMode(OUTPUT_IOPIN_UP, OUTPUT, true);
-  IOBUS::pinMode(OUTPUT_IOPIN_DOWN, OUTPUT, true);
-  IOBUS::pinMode(OUTPUT_IOPIN_LEFT, OUTPUT, true);
-  IOBUS::pinMode(OUTPUT_IOPIN_RIGHT, OUTPUT, true);
-  IOBUS::digitalWrite(OUTPUT_IOPIN_UP, LOW);
-  IOBUS::digitalWrite(OUTPUT_IOPIN_DOWN, LOW);
-  IOBUS::digitalWrite(OUTPUT_IOPIN_LEFT, LOW);
-  IOBUS::digitalWrite(OUTPUT_IOPIN_RIGHT, LOW);
 }
 
 #ifdef DEBUG
