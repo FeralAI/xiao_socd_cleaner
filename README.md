@@ -1,6 +1,6 @@
 # Seeeduino XIAO SOCD Cleaner
 
-DIY SOCD cleaner module using a Seeeduino XIAO Arduino board.
+DIY SOCD cleaner module for an arcade stick, using a Seeeduino XIAO Arduino board.
 
 ## Description
 
@@ -13,13 +13,16 @@ The goal with this sketch is to create a standalone SOCD cleaner that runs as fa
 
 ### SOCD Cleaning
 
-There are three SOCD cleaning methods available in the sketch:
+There are two SOCD cleaning methods to choose from, they are:
 
 * `Neutral` - Holding SOCD will give you a neutral input on either axis.
-* `Up Priority` - Like `Neutral`, except Up takes priority on the vertical axis. This is the default SOCD cleaning method of the Hit Box controllers.
 * `Second Input Priority` - Commonly known as the `Last Win` method, this passes through the latest input for a given axis while maintaining the pressed state of the other direction for that axis. For example if you are holding left then press right, you will get a right input. If you then release and re-press left while still holding right, you will then get a left input. Finally, releasing left will give you a right input because right is still pressed. If both inputs are activated for an axis in the same input sampling window, you will receive neutral, though this is highly unlikely due to the extremely small window for sampling inputs. This is the default method for this sketch.
 
-The only way to swap SOCD methods right now is to change the method call in `void loop()` and reupload the sketch. Adding logic around the PORTB pins would allow selecting between 4 different SOCD methods, and would be great for wiring up to DIP switches. The SOCD cleaning takes from 12 cycles / 0.25μs up to 80 cycles / 1.67μs depending on the inputs and SOCD options. Previous version of this sketch used preprocessor defines to conditionally compile code per SOCD method, which is a little faster but less flexible.
+Each SOCD cleaning method can be modified to make the `Up` direction take priority, known as `Up Priority`. When selecting the `Neutral` method with `Up Priority` enabled, this mimics the default SOCD cleaning of the Hit Box controller. `Up Priority` can also be used with `Second Input Priority` to override the vertical axis behavior.
+
+The 2 DIP switches in the schematic will allow selection of SOCD cleaning method (DIP 1) and Up Priority enable/disable (DIP 2). The SOCD cleaning takes from 12 cycles / 0.25μs up to 80 cycles / 1.67μs depending on the inputs and SOCD options.
+
+## Building the XIAO SOCD Cleaner
 
 ### Pin Mapping
 
@@ -33,18 +36,18 @@ The default pin mapping for this sketch is:
 | D1            | PA4      | INPUT        | RIGHT     |
 | D2            | PA10     | INPUT        | DOWN      |
 | D3            | PA11     | INPUT        | UP        |
-| D4            | PA8      | INPUT        | LEFT      |
+| D4            | PA8      | OUTPUT       | LEFT      |
+| D5            | PA9      | INPUT        | DIP2      |
+| D6            | PB8      | INPUT        | DIP1      |
 | D8            | PA7      | OUTPUT       | RIGHT     |
 | D9            | PA5      | OUTPUT       | DOWN      |
 | D10           | PA6      | OUTPUT       | UP        |
 
-## Building the XIAO SOCD Cleaner
-
 ### Schematic
 
-The XIAO runs on 3.3v, and can be directly hooked up to boards that support that voltage and a common ground. The provided schematic uses a photocoupler to isolate the input and output circuits for better compatibility with pad hacks and retail encoders.
-
 ![XIAO SOCD Schematic](/assets/XIAO%20SOCD%20Cleaner_schem_v2.png)
+
+The XIAO runs on 3.3v, and can be directly hooked up to boards that support that voltage and a common ground. The provided schematic uses a photocoupler to isolate the input and output circuits for better compatibility with pad hacks and retail encoders.
 
 The input/output wire coloring on the schematic follows the typical Sanwa JLF wiring scheme with the 5-pin connector facing the buttons, as seen in the bottom-right corner of this image:
 
@@ -52,17 +55,20 @@ The input/output wire coloring on the schematic follows the typical Sanwa JLF wi
 
 ### Prototype
 
-![XIAO SOCD Prototype Front](/assets/xiao_socd_proto2_front.jpg)
-![XIAO SOCD Prototype Back](/assets/xiao_socd_proto2_back.jpg)
+<div style="display: flex; flex-direction: row; width: 100%">
+  <img src="assets/xiao_socd_proto2_front.jpg" alt="XIAO SOCD Prototype Front" style="width: 50%" />
+  <img src="assets/xiao_socd_proto2_back.jpg" alt="XIAO SOCD Prototype Back" style="width: 50%" /> 
+</div>
 
 Parts used for the prototype:
 
+* 1x Seeeduino XIAO
 * 1x [Mini Perma Proto Breadboard](https://www.amazon.com/gp/product/B085WPTQ9B)
-* 1x Seeeduino XIAO w/headers
 * 1x LTV847/PC847 4-channel photocoupler (rise/fall time for trigger is ~4μs)
 * 4x 100Ω resistors (limits the forward voltage to the expected 1.2v for PC847 operation)
-* 2x 5-pin JST-XH male connectors (common connector style for arcade joysticks, 1 pin for each direction and 1 ground)
-* 1x 2-pin JST-XH male connector (to power the XIAO)
+* 2x 5-pin JST-XH male connectors
+* 1x 2-pin JST-XH male connector
+* 1x 2-position DIP switch
 
 ### Notes
 
@@ -70,7 +76,7 @@ This sketch uses logic level LOW to detect an input is pressed, which is quite c
 
 ### Performance
 
-All SOCD cleaning methods take about **1μs** for a full loop. With the **4μs** the LTV847 takes to trigger the outputs, that's about **5μs** max, or **.005ms**, of additional latency per input. I would consider that imperceptible to a human.
+All SOCD cleaning methods take up to **2μs** for a full loop. With the **4μs** the LTV847 takes to trigger the outputs, that's about **6μs** max, or **.006ms**, of additional latency per input. I would consider that imperceptible to a human.
 
 ## TODOs
 
@@ -84,7 +90,6 @@ A bulk of the optimizations to be had are already done, mostly around pin and re
 * [INTRODUCTION TO SOCD AND RESOLUTIONS](https://www.hitboxarcade.com/blogs/faq/what-is-an-socd)
 * [Seeeduino XIAO Wiki](https://wiki.seeedstudio.com/Seeeduino-XIAO/)
 * [Seeeduino XIAO by Nanase](https://wiki.seeedstudio.com/Seeeduino-XIAO-by-Nanase/)
-* [Seeeduino XIAO Datasheet](https://files.seeedstudio.com/wiki/Seeeduino-XIAO/res/Seeeduino-XIAO-v1.0-SCH-191112.pdf)
+* [Seeeduino XIAO Schematic](https://files.seeedstudio.com/wiki/Seeeduino-XIAO/res/Seeeduino-XIAO-v1.0-SCH-191112.pdf)
 * [Sasapea's Lab (IOBUS.h library)](https://lab.sasapea.mydns.jp/2020/03/16/seeeduino-xiao/)
-* [LTV847 Datasheet](https://www.mouser.com/datasheet/2/239/LTV-8X7_series_201610_-1544776.pdf)
-* [PC847 Datasheet](https://datasheet.octopart.com/PC847-Sharp-Microelectronics-datasheet-101325.pdf)
+* [LTV847 Datasheet](https://www.mouser.com/datasheet/2/239/LTV-8X7_series_201610_-1544776.pdf), [PC847 Datasheet](https://datasheet.octopart.com/PC847-Sharp-Microelectronics-datasheet-101325.pdf)
