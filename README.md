@@ -45,9 +45,13 @@ The default pin mapping for this sketch is:
 
 ### Schematic
 
-![XIAO SOCD Schematic](/assets/XIAO%20SOCD%20Cleaner_schem_v2.png)
+The Seeeduino XIAO runs on 3.3v, and can be directly hooked up to encoder boards that provide 3.3v and use a common ground:
 
-The XIAO runs on 3.3v, and can be directly hooked up to boards that support that voltage and a common ground. The provided schematic uses a photocoupler to isolate the input and output circuits for better compatibility with pad hacks and retail encoders.
+![XIAO SOCD Schematic 3.3v common ground](/assets/XIAO%20SOCD%20Cleaner_schem_direct.png)
+
+You can also use a photocoupler/optocoupler to electrically isolate the input and output circuits for better compatibility with pad hacks and retail encoders:
+
+![XIAO SOCD Schematic w/optocoupler](/assets/XIAO%20SOCD%20Cleaner_schem_v2.png)
 
 The input/output wire coloring on the schematic follows the typical Sanwa JLF wiring scheme with the 5-pin connector facing the buttons, as seen in the bottom-right corner of this image:
 
