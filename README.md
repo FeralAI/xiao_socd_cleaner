@@ -49,7 +49,9 @@ The Seeeduino XIAO runs on 3.3v, and can be directly hooked up to encoder boards
 
 ![XIAO SOCD Schematic 3.3v common ground](/assets/XIAO%20SOCD%20Cleaner_schem_direct.png)
 
-You can also use a photocoupler/optocoupler to electrically isolate the input and output circuits for better compatibility with pad hacks and retail encoders:
+> NOTE: The XIAO can be powered via the 5v pin instead of the 3.3v pin, however the pin logic will still run on 3.3v.
+
+A photocoupler/optocoupler can also be used to electrically isolate the input and output circuits for better compatibility with pad hacks and retail encoders:
 
 ![XIAO SOCD Schematic w/optocoupler](/assets/XIAO%20SOCD%20Cleaner_schem_v2.png)
 
@@ -59,9 +61,9 @@ The input/output wire coloring on the schematic follows the typical Sanwa JLF wi
 
 ### Prototype
 
-<div style="display: flex; flex-direction: row; width: 100%">
-  <img src="assets/xiao_socd_proto2_front.jpg" alt="XIAO SOCD Prototype Front" style="width: 50%" />
-  <img src="assets/xiao_socd_proto2_back.jpg" alt="XIAO SOCD Prototype Back" style="width: 50%" /> 
+<div style="width: 100%">
+  <img src="assets/xiao_socd_proto2_front.jpg" alt="XIAO SOCD Prototype Front" style="display: inline-block; width: 49%" />
+  <img src="assets/xiao_socd_proto2_back.jpg" alt="XIAO SOCD Prototype Back" style="display: inline-block; width: 49%" /> 
 </div>
 
 Parts used for the prototype:
