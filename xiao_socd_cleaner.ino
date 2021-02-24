@@ -33,7 +33,6 @@
 #define COMPARE_VALUE 65535
 
 // Loop variables
-// Set your selected SOCD cleaning method here: 0 - Neutral, 1 - Up Priority, 2 - Second Input Priority
 Direction lastDirectionUD = Direction::neutral;
 Direction lastDirectionLR = Direction::neutral;
 bool secondInputPriority = false;
@@ -66,6 +65,7 @@ void configureSOCD() {
 void setup() {
 #ifdef DEBUG
   Serial.begin(115200);
+  while (!Serial);
 #endif
   configurePins();
   configureSOCD();
@@ -85,16 +85,16 @@ void loop() {
   switch (inputValues & InputMasks::maskUD) {
     case InputMasks::maskUD:
       if (upPriority)
-        outputState |= InputMasks::valueU;
+        outputState |= OutputValues::valueU;
       else if (secondInputPriority)
-        outputState |= (lastDirectionUD == Direction::up) ? InputMasks::valueD : InputMasks::valueU;
+        outputState |= (lastDirectionUD == Direction::up) ? OutputValues::valueD : OutputValues::valueU;
       break;
     case InputMasks::maskU:
-      outputState |= InputMasks::valueU;
+      outputState |= OutputValues::valueU;
       lastDirectionUD = Direction::up;
       break;
     case InputMasks::maskD:
-      outputState |= InputMasks::valueD;
+      outputState |= OutputValues::valueD;
       lastDirectionUD = Direction::down;
       break;
   }
@@ -102,24 +102,24 @@ void loop() {
   switch (inputValues & InputMasks::maskLR) {
     case InputMasks::maskLR:
       if (secondInputPriority)
-        outputState |= (lastDirectionLR == Direction::left) ? InputMasks::valueR : InputMasks::valueL;
+        outputState |= (lastDirectionLR == Direction::left) ? OutputValues::valueR : OutputValues::valueL;
       break;
     case InputMasks::maskL:
-      outputState |= InputMasks::valueL;
+      outputState |= OutputValues::valueL;
       lastDirectionLR = Direction::left;
       break;
     case InputMasks::maskR:
-      outputState |= InputMasks::valueR;
+      outputState |= OutputValues::valueR;
       lastDirectionLR = Direction::right;
       break;
   }
 
 #ifdef INVERT_OUTPUT_LOGIC
-  PORT_IOBUS->Group[0].OUTCLR.reg = (outputState ^ InputMasks::valueUDLR);
+  PORT_IOBUS->Group[0].OUTCLR.reg = (outputState ^ OutputValues::valueUDLR);
   PORT_IOBUS->Group[0].OUTSET.reg = outputState;
 #else
   PORT_IOBUS->Group[0].OUTCLR.reg = outputState;
-  PORT_IOBUS->Group[0].OUTSET.reg = (outputState ^ InputMasks::valueUDLR);
+  PORT_IOBUS->Group[0].OUTSET.reg = (outputState ^ OutputValues::valueUDLR);
 #endif
 
 #ifdef DEBUG

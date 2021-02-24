@@ -49,33 +49,32 @@ enum class Direction {
   right   = 3,
 };
 
-// This class predefines all the possible input masks and values for the pin definitions above,
-// and is used to avoid on-the-fly calculations during the input cleaning process.
+// These class predefines comparison and output values, and are used to avoid on-the-fly calculations during the input cleaning process.
 class InputMasks {
   public:
     // Set up input masks. Bit offsets are based on the port number, e.g. PA9 == (1 << 9).
-    // If the input pins are changed, these values will need to be updated
-    
-    // Input mask permuatations
-    static const uint32_t maskD    = (1 << INPUT_PORT_PIN_DOWN);
-    static const uint32_t maskL    = (1 << INPUT_PORT_PIN_LEFT);
-    static const uint32_t maskR    = (1 << INPUT_PORT_PIN_RIGHT);
-    static const uint32_t maskU    = (1 << INPUT_PORT_PIN_UP);
-    static const uint32_t maskUD   = maskU | maskD;
-    static const uint32_t maskLR   = maskL | maskR;
-    static const uint32_t maskUDLR = maskU | maskD | maskL | maskR;
+    const static uint32_t maskD    = (1 << INPUT_PORT_PIN_DOWN);
+    const static uint32_t maskL    = (1 << INPUT_PORT_PIN_LEFT);
+    const static uint32_t maskR    = (1 << INPUT_PORT_PIN_RIGHT);
+    const static uint32_t maskU    = (1 << INPUT_PORT_PIN_UP);
+    const static uint32_t maskUD   = maskU | maskD;
+    const static uint32_t maskLR   = maskL | maskR;
+    const static uint32_t maskUDLR = maskU | maskD | maskL | maskR;
 
+    const static uint32_t dip1     = (1 << DIP1_PORT_PIN);
+    const static uint32_t dip2     = (1 << DIP2_PORT_PIN);
+};
+
+class OutputValues {
+  public:
     // Cached output bit enable flags
-    static const uint32_t valueD    = (1 << OUTPUT_PORT_PIN_DOWN);
-    static const uint32_t valueL    = (1 << OUTPUT_PORT_PIN_LEFT);
-    static const uint32_t valueR    = (1 << OUTPUT_PORT_PIN_RIGHT);
-    static const uint32_t valueU    = (1 << OUTPUT_PORT_PIN_UP);
-    static const uint32_t valueLR   = valueL | valueR;
-    static const uint32_t valueUD   = valueU | valueD;
-    static const uint32_t valueUDLR = valueU | valueD | valueL | valueR;
-
-    static const uint32_t dip1 = (1 << DIP1_PORT_PIN);
-    static const uint32_t dip2 = (1 << DIP2_PORT_PIN);
+    const static uint32_t valueD    = (1 << OUTPUT_PORT_PIN_DOWN);
+    const static uint32_t valueL    = (1 << OUTPUT_PORT_PIN_LEFT);
+    const static uint32_t valueR    = (1 << OUTPUT_PORT_PIN_RIGHT);
+    const static uint32_t valueU    = (1 << OUTPUT_PORT_PIN_UP);
+    const static uint32_t valueLR   = valueL | valueR;
+    const static uint32_t valueUD   = valueU | valueD;
+    const static uint32_t valueUDLR = valueU | valueD | valueL | valueR;
 };
 
 #endif
