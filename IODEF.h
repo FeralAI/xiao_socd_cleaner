@@ -57,25 +57,25 @@ class InputMasks {
     // If the input pins are changed, these values will need to be updated
     
     // Input mask permuatations
-    static const uint16_t maskD    = 0 | (1 << INPUT_PORT_PIN_DOWN);
-    static const uint16_t maskL    = 0 | (1 << INPUT_PORT_PIN_LEFT);
-    static const uint16_t maskR    = 0 | (1 << INPUT_PORT_PIN_RIGHT);
-    static const uint16_t maskU    = 0 | (1 << INPUT_PORT_PIN_UP);
-    static const uint16_t maskUD   = maskU | maskD;
-    static const uint16_t maskLR   = maskL | maskR;
-    static const uint16_t maskUDLR = maskU | maskD | maskL | maskR;
+    static const uint32_t maskD    = (1 << INPUT_PORT_PIN_DOWN);
+    static const uint32_t maskL    = (1 << INPUT_PORT_PIN_LEFT);
+    static const uint32_t maskR    = (1 << INPUT_PORT_PIN_RIGHT);
+    static const uint32_t maskU    = (1 << INPUT_PORT_PIN_UP);
+    static const uint32_t maskUD   = maskU | maskD;
+    static const uint32_t maskLR   = maskL | maskR;
+    static const uint32_t maskUDLR = maskU | maskD | maskL | maskR;
 
     // Cached output bit enable flags
-    static const uint16_t valueD    = 0 | (1 << OUTPUT_PORT_PIN_DOWN);
-    static const uint16_t valueL    = 0 | (1 << OUTPUT_PORT_PIN_LEFT);
-    static const uint16_t valueR    = 0 | (1 << OUTPUT_PORT_PIN_RIGHT);
-    static const uint16_t valueU    = 0 | (1 << OUTPUT_PORT_PIN_UP);
-    static const uint16_t valueLR   = valueL | valueR;
-    static const uint16_t valueUD   = valueU | valueD;
-    static const uint16_t valueUDLR = valueU | valueD | valueL | valueR;
+    static const uint32_t valueD    = (1 << OUTPUT_PORT_PIN_DOWN);
+    static const uint32_t valueL    = (1 << OUTPUT_PORT_PIN_LEFT);
+    static const uint32_t valueR    = (1 << OUTPUT_PORT_PIN_RIGHT);
+    static const uint32_t valueU    = (1 << OUTPUT_PORT_PIN_UP);
+    static const uint32_t valueLR   = valueL | valueR;
+    static const uint32_t valueUD   = valueU | valueD;
+    static const uint32_t valueUDLR = valueU | valueD | valueL | valueR;
 
-    static const uint16_t dip1 = 0 | (1 << DIP1_PORT_PIN);
-    static const uint16_t dip2 = 0 | (1 << DIP2_PORT_PIN);
+    static const uint32_t dip1 = (1 << DIP1_PORT_PIN);
+    static const uint32_t dip2 = (1 << DIP2_PORT_PIN);
 };
 
 #endif

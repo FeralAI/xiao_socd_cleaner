@@ -14,7 +14,7 @@
  */
 
 // Uncomment this define to show loop time and input/output states via serial monitoring
-#define DEBUG
+// #define DEBUG
 
 // Set the version of the prototype board being used - this controls the pin definitions in PINDEF.h
 #define PROTOTYPE_VERSION 2
@@ -50,6 +50,17 @@ void configureSOCD() {
   secondInputPriority = (portB & (1 << DIP1_PORT_PIN)) == 0;
   upPriority = (portA & (1 << DIP2_PORT_PIN)) == 0;
 #endif
+#ifdef DEBUG
+  if (secondInputPriority)
+    Serial.print("Using SIP SOCD cleaning");
+  else
+    Serial.print("Using Neutral SOCD cleaning");
+  
+  if (upPriority)
+    Serial.println(" with Up Priority");
+  else
+    Serial.println();
+#endif
 }
 
 void setup() {
@@ -68,59 +79,53 @@ void loop() {
 #ifdef DEBUG
   TC5->COUNT16.COUNT.reg = 0;
 #endif
-  uint32_t maskedInput = PORT_IOBUS->Group[PORTA].IN.reg ^ InputMasks::maskUDLR;
+  uint32_t inputValues = ~PORT_IOBUS->Group[PORTA].IN.reg;
   uint32_t outputState = 0;
 
-  if (maskedInput) {
-    switch (maskedInput & InputMasks::maskUD) {
-      case InputMasks::maskUD:
-        if (upPriority)
-          outputState |= InputMasks::valueU;
-        else if (secondInputPriority)
-          outputState |= (lastDirectionUD == Direction::up) ? InputMasks::valueD : InputMasks::valueU;
-        break;
-      case InputMasks::maskU:
+  switch (inputValues & InputMasks::maskUD) {
+    case InputMasks::maskUD:
+      if (upPriority)
         outputState |= InputMasks::valueU;
-        if (secondInputPriority)
-          lastDirectionUD = Direction::up;
-        break;
-      case InputMasks::maskD:
-        outputState |= InputMasks::valueD;
-        if (secondInputPriority)
-          lastDirectionUD = Direction::down;
-        break;
-    }
+      else if (secondInputPriority)
+        outputState |= (lastDirectionUD == Direction::up) ? InputMasks::valueD : InputMasks::valueU;
+      break;
+    case InputMasks::maskU:
+      outputState |= InputMasks::valueU;
+      lastDirectionUD = Direction::up;
+      break;
+    case InputMasks::maskD:
+      outputState |= InputMasks::valueD;
+      lastDirectionUD = Direction::down;
+      break;
+  }
 
-    switch (maskedInput & InputMasks::maskLR) {
-      case InputMasks::maskLR:
-        if (secondInputPriority)
-          outputState |= (lastDirectionLR == Direction::left) ? InputMasks::valueR : InputMasks::valueL;
-        break;
-      case InputMasks::maskL:
-        outputState |= InputMasks::valueL;
-        if (secondInputPriority)
-          lastDirectionLR = Direction::left;
-        break;
-      case InputMasks::maskR:
-        outputState |= InputMasks::valueR;
-        if (secondInputPriority)
-          lastDirectionLR = Direction::right;
-        break;
-    }
+  switch (inputValues & InputMasks::maskLR) {
+    case InputMasks::maskLR:
+      if (secondInputPriority)
+        outputState |= (lastDirectionLR == Direction::left) ? InputMasks::valueR : InputMasks::valueL;
+      break;
+    case InputMasks::maskL:
+      outputState |= InputMasks::valueL;
+      lastDirectionLR = Direction::left;
+      break;
+    case InputMasks::maskR:
+      outputState |= InputMasks::valueR;
+      lastDirectionLR = Direction::right;
+      break;
   }
 
 #ifdef INVERT_OUTPUT_LOGIC
-  PORT_IOBUS->Group[0].OUTCLR.reg = 0 | (outputState ^ InputMasks::valueUDLR);
-  PORT_IOBUS->Group[0].OUTSET.reg = 0 | outputState;
+  PORT_IOBUS->Group[0].OUTCLR.reg = (outputState ^ InputMasks::valueUDLR);
+  PORT_IOBUS->Group[0].OUTSET.reg = outputState;
 #else
-  PORT_IOBUS->Group[0].OUTCLR.reg = 0 | outputState;
-  PORT_IOBUS->Group[0].OUTSET.reg = 0 | (outputState ^ InputMasks::valueUDLR);
+  PORT_IOBUS->Group[0].OUTCLR.reg = outputState;
+  PORT_IOBUS->Group[0].OUTSET.reg = (outputState ^ InputMasks::valueUDLR);
 #endif
 
 #ifdef DEBUG
   // Log timing
-  // Takes 8 cycles to reset timer
-  Serial.println(TC5->COUNT16.COUNT.reg - 8);
+  // Takes 8 cycles to reset timer + 1 to capture during print
+  Serial.println(TC5->COUNT16.COUNT.reg - 9);
   delay(100);
   // Serial.print("maskedInput: ");
   // Serial.println(maskedInput, BIN);
